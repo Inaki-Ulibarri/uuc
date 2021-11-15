@@ -1,15 +1,18 @@
 /* uuc, a shitty wc copy by Iñaki Ulibarri Utrilla
  * Unlicensed, because you'd have to be crazy to steal this thing :D
+ * 
  */
 
-// TODO: add options to get individual information of files
+//TODO: fix the options and the totals
 #include "uuc.h"
 
 /* Print the usage of the program to stdout*/
 void print_help(){
 	puts("uuc: <options> <files>\n"
-		"options:\n"
-		"	-h	Display this help text\n"
+		"	-h Display this help text\n"
+		"	-l Show line numbers of the file\n"
+		"	-w Show number of words in the file\n"
+		"	-b Show size of the file in bytes\n" 
 		"uuc, a shitty wc copy by Iñaki Ulibarri Utrilla\n"
 		"Unlicensed, because you'd have to be crazy to steal this thing :D"
 		);
@@ -54,50 +57,95 @@ int main(int argc, char *argv[]){
 		exit(0);
 	}
 
+	flgs.nl = false;
+	flgs.w = false;
+	flgs.b = false;
+	
+	//Ik this is clunky and Yanderedevy, but it's the best method I could
+	//come up with :v
 	int opt;
-	while((opt = getopt(argc, argv, "h")) != -1){
-		switch(opt){
-			case 'h':
-				print_help();
-				exit(0);
-				//no need to break here
-			default:
-				break;
-			}
+	int i = 1;
+	//things break when taking more than one argument 
+	//per argv[]
+	do{
+		opt = getopt(argc, argv, "hlwb");
+		if(opt == 'h'){
+			print_help();
+			exit(0);
+		}
+		else if(opt == 'l'){
+			flgs.nl = true;
+			i++;
+		}
+		else if(opt == 'w'){
+			flgs.w = true;
+			i++;
+		}
+		else if(opt == 'b'){
+			flgs.b = true;
+			i++;
+		}else if(opt == -1 && i == 1){
+			flgs.nl = true;
+			flgs.w = true;
+			flgs.b = true;
+		}
+	}while(opt != -1);
+	
+	FILE *file;
+	//getopt shenanigans
+	int f_count = optind;
+	int o_files = 0;
+	
+	do{
+		file = fopen(argv[f_count], "r");
+		if(!file){
+			fprintf(stderr, "Error opening file: %s\n", argv[f_count]);
+			exit (1);
+		}
+		o_files++;
+		
+		struct stat stt;
+		lstat(argv[f_count], &stt);
+
+		//places to put stuff
+		int nl, w;
+		
+		if(flgs.nl){
+			nl = count_nl(file);
+			printf("%4d ", nl);
+			//gotta go back
+			fseek(file, 0, SEEK_SET); 
+		}
+		if(flgs.w){
+			w = count_w(file);
+			printf("%4d ", w);
+		}
+		if(flgs.b){
+			printf("%4ld ", stt.st_size);
+		}
+		printf("%s\n", argv[f_count]);
+
+		//totals are always calculated
+		totals.nl += nl;
+		totals.w += w;
+		totals.b += stt.st_size;
+
+		f_count++;
+	}while(f_count < argc);
+
+	if(o_files > 1){
+		if(flgs.nl){
+			printf("%4d ", totals.nl);
+		}
+		if(flgs.w){
+			printf("%4d ", totals.w);
+		}
+		if(flgs.b){
+			printf("%4ld ", totals.b);
 		}
 
-		FILE *file;
-		int o_files = 1;
-		do{
-			assert(file);
-			file = fopen(argv[o_files], "r");
-
-			int nl = count_nl(file);
-			fseek(file, 0, SEEK_SET);
-			//we need to back to the beginnig to count
-
-			int w = count_w(file);
-
-			struct stat stt;
-			lstat(argv[o_files], &stt);
-			//get bytes of the file
-
-			printf("%4d %4d %4ld  %s\n",
-				nl, w, stt.st_size, argv[o_files]);
-
-			if(o_files < argc){
-				totals.nl += nl;
-				totals.w += w;
-				totals.b += stt.st_size;
-			}
-
-			o_files++;
-		}while(o_files < argc);
-
-		if(o_files > 1){
-			printf("%4d %4d %4ld  %s\n",
-				totals.nl, totals.w, totals.b , "totals");
-		}
-
-		return EXIT_SUCCESS;
+		printf("total\n");
 	}
+
+	return EXIT_SUCCESS;
+}
