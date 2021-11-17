@@ -3,7 +3,7 @@
  * 
  */
 
-//TODO: fix the options and the totals
+//TODO: add clarification of the datatype that is being presented to the user
 #include "uuc.h"
 
 /* Print the usage of the program to stdout*/
@@ -109,21 +109,38 @@ int main(int argc, char *argv[]){
 
 		//places to put stuff
 		int nl, w;
+
+		//set up some clarification on the data
+		//being presented
+		if(o_files == 1){
+			if(flgs.nl){
+				printf("%6s", "lines"); 
+			}
+			if(flgs.w){
+				printf("%6s", "words");
+			}
+			if(flgs.b){
+				printf("%6s", "bytes");
+			}
+			printf("\n");
+		}
 		
+		//actual data of the files
+		//on display
 		if(flgs.nl){
 			nl = count_nl(file);
-			printf("%4d ", nl);
+			printf("%6d", nl);
 			//gotta go back
 			fseek(file, 0, SEEK_SET); 
 		}
 		if(flgs.w){
 			w = count_w(file);
-			printf("%4d ", w);
+			printf("%6d", w);
 		}
 		if(flgs.b){
-			printf("%4ld ", stt.st_size);
+			printf("%6ld", stt.st_size);
 		}
-		printf("%s\n", argv[f_count]);
+		printf(" %s\n", argv[f_count]);
 
 		//totals are always calculated
 		totals.nl += nl;
@@ -135,16 +152,16 @@ int main(int argc, char *argv[]){
 
 	if(o_files > 1){
 		if(flgs.nl){
-			printf("%4d ", totals.nl);
+			printf("%6d", totals.nl);
 		}
 		if(flgs.w){
-			printf("%4d ", totals.w);
+			printf("%6d", totals.w);
 		}
 		if(flgs.b){
-			printf("%4ld ", totals.b);
+			printf("%6ld", totals.b);
 		}
 
-		printf("total\n");
+		printf(" total\n");
 	}
 
 	return EXIT_SUCCESS;
