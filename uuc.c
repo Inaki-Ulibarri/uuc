@@ -1,6 +1,5 @@
 /* uuc, a shitty wc copy by Iñaki Ulibarri Utrilla
  * Unlicensed, because you'd have to be crazy to steal this thing :D
- * 
  */
 
 //TODO: add clarification of the datatype that is being presented to the user
@@ -18,8 +17,7 @@ void print_help(){
 		);
 	}
 
-/* Count the amount of '\n' in
- * foofile.*/
+/* Count the amount of '\n' in foofile.*/
 int count_nl(FILE *foofile){
 	int count = 0, ch;
 	
@@ -38,7 +36,7 @@ int count_w(FILE *foofile){
 	int count = 0;
 	char ch1, ch2;
 	ch1 = getc(foofile);
-	while(ch1 != EOF || ch2 != EOF){
+	while(ch1 != EOF){
 		ch2 = ch1;
 		ch1 = getc(foofile);
 		if(isspace(ch1) && isalnum(ch2))
@@ -65,8 +63,6 @@ int main(int argc, char *argv[]){
 	//come up with :v
 	int opt;
 	int i = 1;
-	//things break when taking more than one argument 
-	//per argv[]
 	do{
 		opt = getopt(argc, argv, "hlwb");
 		if(opt == 'h'){
@@ -91,12 +87,13 @@ int main(int argc, char *argv[]){
 		}
 	}while(opt != -1);
 	
+	//shenanigans
 	FILE *file;
-	//getopt shenanigans
 	int f_count = optind;
 	int o_files = 0;
 	
 	do{
+		//file-handling shenanigans
 		file = fopen(argv[f_count], "r");
 		if(!file){
 			fprintf(stderr, "Error opening file: %s\n", argv[f_count]);
